@@ -146,15 +146,10 @@ app.post('/api/trial-call', async (request, reply) => {
          */
 
         const call = await twilioClient.calls.create({
-
-            to: to,
-
-            from: TWILIO_PHONE_NUMBER,
-
-            url:
-                'https://YOUR-RENDER-URL.onrender.com/api/voice'
-
-        });
+    to: to,
+    from: TWILIO_PHONE_NUMBER,
+    url: 'https://call-1-sl8t.onrender.com/api/voice'
+});
 
 
         return {
