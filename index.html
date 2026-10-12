@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>On-Ground.ai — Call Centre App</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@twilio/voice-sdk@2.16.0/dist/twilio.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">OG</div>
+        <div><strong>On-Ground.ai</strong><span>The Sleep Company · Call Centre</span></div>
+      </div>
+      <div class="top-actions"><div class="vertical-switch" title="Reference mock supports Retail and Healthcare contexts"><button id="retailBtn" class="vertical-btn active" onclick="setVertical('retail')">Retail</button><button id="healthBtn" class="vertical-btn" onclick="setVertical('healthcare')">Healthcare</button></div>
+        <button class="icon-btn" onclick="openNotifications()" aria-label="Notifications">🔔<span class="dot"></span></button>
+        <button class="profile-btn" onclick="toggleUserMenu()"><span class="avatar">AR</span><span class="profile-copy"><b>Arvind Rajan</b><small>Koramangala</small></span><span>⌄</span></button>
+        <div class="user-menu" id="userMenu">
+          <button onclick="openAvatar()">🦸 Avatar</button>
+          <button onclick="openSettings()">⚙️ Settings</button>
+          <button onclick="toast('Demo logout — no session is ended in this mock.')">↪ Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <section id="screen-dash" class="screen active"></section>
+      <section id="screen-calls" class="screen"></section>
+      <section id="screen-calendar" class="screen"></section>
+      <section id="screen-pulse" class="screen"></section>
+      <section id="screen-avani" class="screen"></section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button data-tab="dash" class="nav-item active" onclick="switchScreen('dash')"><span>▦</span>Dashboard</button>
+      <button data-tab="calls" class="nav-item" onclick="switchScreen('calls')"><span>☎</span>Plan</button>
+      <button data-tab="calendar" class="nav-item" onclick="switchScreen('calendar')"><span>▣</span>Calendar</button>
+      <button data-tab="pulse" class="nav-item" onclick="switchScreen('pulse')"><span>☵</span>Pulse</button>
+      <button data-tab="avani" class="nav-item" onclick="switchScreen('avani')"><span>✦</span>Avani</button>
+    </nav>
+  </div>
+
+  <!-- Lead detail -->
+  <div class="overlay" id="leadModal">
+    <div class="sheet large">
+      <div class="sheet-head purple"><div><b id="leadModalTitle">Lead</b><small id="leadModalSub">Your allocated leads · SLA to close</small></div><button onclick="closeOverlay('leadModal')">✕</button></div>
+      <div id="leadModalBody" class="sheet-body"></div>
+    </div>
+  </div>
+
+  <!-- On-ground SOP -->
+  <div class="overlay" id="sopModal">
+    <div class="sheet">
+      <div class="sheet-head"><div><b>Before you call</b><small id="sopMeta">On-ground Call · Lead</small></div><button onclick="closeOverlay('sopModal')">✕</button></div>
+      <div class="sheet-body" id="sopBody"></div>
+    </div>
+  </div>
+
+  <!-- Generic action sheet -->
+  <div class="overlay" id="actionModal">
+    <div class="sheet small"><div class="sheet-head"><div><b id="actionTitle">Action</b><small id="actionSub">Lead update</small></div><button onclick="closeOverlay('actionModal')">✕</button></div><div class="sheet-body" id="actionBody"></div></div>
+  </div>
+
+  <!-- Dialer -->
+  <div class="overlay" id="dialerModal">
+    <div class="sheet large">
+      <div class="sheet-head"><div><b id="dialerTitle">Incoming call</b><small id="dialerSub">Practice mode</small></div><button onclick="closeOverlay('dialerModal')">✕</button></div>
+      <div class="sheet-body" id="dialerBody"></div>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="overlay" id="notificationsModal">
+    <div class="sheet large"><div class="sheet-head"><div><b>Notifications</b><small>All · Needs action · Alerts</small></div><button onclick="closeOverlay('notificationsModal')">✕</button></div><div class="sheet-body" id="notificationsBody"></div></div>
+  </div>
+
+  <!-- Settings -->
+  <div class="overlay" id="settingsModal">
+    <div class="sheet large"><div class="sheet-head"><div><b>Settings</b><small>Employee profile & app preferences</small></div><button onclick="closeOverlay('settingsModal')">✕</button></div><div class="sheet-body" id="settingsBody"></div></div>
+  </div>
+
+  <!-- Avatar -->
+  <div class="overlay" id="avatarModal">
+    <div class="sheet small"><div class="sheet-head"><div><b>Avatar</b><small>Your selling persona</small></div><button onclick="closeOverlay('avatarModal')">✕</button></div><div class="sheet-body" id="avatarBody"></div></div>
+  </div>
+
+  <!-- Date range -->
+  <div class="overlay" id="dateModal">
+    <div class="sheet small"><div class="sheet-head"><div><b>Select Date Range</b><small>Change dashboard reporting period</small></div><button onclick="closeOverlay('dateModal')">✕</button></div><div class="sheet-body" id="dateBody"></div></div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+  <script>
+
+async function makeRealCall() {
+
+    const phoneNumber = prompt(
+        "Enter customer's phone number:\nExample: +919876543210"
+    );
+
+    if (!phoneNumber) {
+        return;
+    }
+
+
+    try {
+
+        const response = await fetch('/api/trial-call', {
+
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({
+                to: phoneNumber
+            })
+
+        });
+
+
+        const data = await response.json();
+
+
+        if (!data.ok) {
+
+            alert(
+                "Call failed:\n" +
+                data.error
+            );
+
+            return;
+        }
+
+
+        alert(
+            "📞 Real call started!\n\n" +
+            "Call SID: " +
+            data.callSid
+        );
+
+
+    } catch (error) {
+
+        alert(
+            "Could not connect to the server."
+        );
+
+        console.error(error);
+
+    }
+
+}
+
+</script>
+</body>
+</html>
