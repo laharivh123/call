@@ -145,7 +145,7 @@ app.post('/api/trial-call', async (request, reply) => {
          * Text-to-Speech template.
          */
 
-        const call = await twilioClient.calls.create({
+      const call = await twilioClient.calls.create({
     to: to,
     from: TWILIO_PHONE_NUMBER,
     url: 'https://call-1-sl8t.onrender.com/api/voice'
