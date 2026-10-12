@@ -5,8 +5,11 @@ import twilio from 'twilio';
 import dotenv from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
+import OpenAI from 'openai';
 dotenv.config();
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -69,6 +72,33 @@ app.get('/api/health', async () => {
 });
 
 
+app.post('/api/ai/test', async (request, reply) => {
+    if (!process.env.OPENAI_API_KEY) {
+        return reply.code(503).send({
+            ok: false,
+            error: 'OpenAI API key is missing'
+        });
+    }
+
+    try {
+        const response = await openai.responses.create({
+            model: 'gpt-4.1-mini',
+            input: 'Say hello and introduce yourself as the On-Ground Call Centre AI assistant in one short sentence.'
+        });
+
+        return {
+            ok: true,
+            reply: response.output_text
+        };
+    } catch (error) {
+        app.log.error(error);
+        return reply.code(500).send({
+            ok: false,
+            error: 'AI test failed. Check server logs and API billing.'
+        });
+    }
+});
+
 // --------------------------------------------------
 // REAL TRIAL PHONE CALL
 // --------------------------------------------------
@@ -122,7 +152,7 @@ app.post('/api/trial-call', async (request, reply) => {
             from: TWILIO_PHONE_NUMBER,
 
             url:
-                'https://webhooks.twilio.com/v1/Voice/Template/voice_text_to_speech'
+                'https://YOUR-RENDER-URL.onrender.com/api/voice'
 
         });
 
